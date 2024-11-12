@@ -94,12 +94,13 @@ ORDER BY row_num;
 
 ##Query Results Table
 
-Actor	Doctor	Professor	Singer
-Ethan Harris	Alice Johnson	Daniel Walker	Sophia Anderson
-Mia Turner	Bob Brown	David Martinez	James Thomas
-Noah Green	Charlie Davis	Emily Lewis	Olivia Robinson
-Isabella Scott	Jane Smith	Michael Wilson	NULL
-NULL	John Doe	Sarah Clark	NULL
+|Actor	|Doctor	|Professor	|Singer|
+|------|-------------|-------------|-------|
+|Ethan Harris|	Alice Johnson|	Daniel Walker|	Sophia Anderson|
+|Mia Turner|	Bob Brown|	David Martinez|	James Thomas|
+|Noah Green	|Charlie Davis|	Emily Lewis|	Olivia Robinson|
+|Isabella Scott|	Jane Smith|	Michael Wilson|	NULL|
+|NULL|	John Doe|	Sarah Clark|	NULL|
 
 
 ##Why Use GROUP BY row_num?
