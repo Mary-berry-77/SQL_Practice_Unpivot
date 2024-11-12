@@ -15,24 +15,26 @@
 
 ##Database
 -Table: occupations
-Name	Occupation
-John Doe	Doctor
-Jane Smith	Doctor
-Alice Johnson	Doctor
-Bob Brown	Doctor
-Charlie Davis	Doctor
-Michael Wilson	Professor
-Sarah Clark	Professor
-David Martinez	Professor
-Emily Lewis	Professor
-Daniel Walker	Professor
-Sophia Anderson	Singer
-James Thomas	Singer
-Olivia Robinson	Singer
-Isabella Scott	Actor
-Ethan Harris	Actor
-Mia Turner	Actor
-Noah Green	Actor
+
+|Name	|Occupation    |
+|------|--------------|
+|John Doe | Doctor |
+|Jane Smith  |Doctor|
+|Alice Johnson|Doctor|
+|Bob Brown|	Doctor|
+|Charlie Davis|	Doctor|
+|Michael Wilson	|Professor|
+|Sarah Clark|	Professor|
+|David Martinez	|Professor|
+|Emily Lewis|	Professor|
+|Daniel Walker|	Professor|
+|Sophia Anderson|	Singer|
+|James Thomas|	Singer|
+|Olivia Robinson|	Singer|
+|Isabella Scott|	Actor|
+|Ethan Harris|	Actor|
+|Mia Turner|	Actor|
+|Noah Green|	Actor|
 
 
 ##Solution Approach
