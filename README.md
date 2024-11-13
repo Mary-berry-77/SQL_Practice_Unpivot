@@ -1,13 +1,13 @@
-**#SQL Learning Notes**
+# SQL Learning Notes
 
 ## SQL_Practice_Unpivot + Applications
 
-**##Goals**
+## Goals
 -Understanding GROUP BY
 -Using MIN function with GROUP BY
 -Unpivoting columns
 
-**##Problem (Adapted from HackerRank)**
+## Problem (Adapted from HackerRank)
 -Task: Pivot the Occupation column in the OCCUPATIONS table so that each Name is sorted alphabetically and displayed under its corresponding Occupation. The output columns should be titled Doctor, Professor, Singer, and Actor, respectively.
 -The first column should be an alphabetically ordered list of Doctor names.
 -The second column should be an alphabetically ordered list of Professor names.
@@ -15,7 +15,7 @@
 -The fourth column should be an alphabetically ordered list of Actor names.
 -For columns with fewer names than the maximum count per occupation, the remaining cells should be filled with NULL.
 
-**##Database**
+## Database
 -Table: occupations
 
 |Name	|Occupation    |
@@ -39,9 +39,9 @@
 |Noah Green|	Actor|
 
 
-**##Solution Approach**
+## Solution Approach
 
-**###Step 1**: Assign Rank to Each Name with ROW_NUMBER()
+### Step 1: Assign Rank to Each Name with ROW_NUMBER()
 First, we assign a ranking to each name within each occupation using the ROW_NUMBER() function, sorted alphabetically by name. Here’s the basic structure of the subquery:
 
 
@@ -51,7 +51,7 @@ SELECT name, occupation,
 FROM occupations
 ```
 
-**###Step 2**: Group by row_num
+### Step 2: Group by row_num
 Using GROUP BY row_num in the main query groups the results by each row_num value. This allows us to arrange the table so that each row_num group holds names with the same ranking across all occupations. 
 
 For instance:
@@ -60,7 +60,7 @@ For instance:
 
 This step ensures that we have all names aligned by their rank, regardless of occupation.
 
-**###Step 3**: Using MIN(CASE WHEN occupation = 'Doctor' THEN name ELSE NULL END)
+### Step 3: Using MIN(CASE WHEN occupation = 'Doctor' THEN name ELSE NULL END)
 
 The expression MIN(CASE WHEN occupation = 'Doctor' THEN name ELSE NULL END) works by checking the occupation of each record:
 -When the occupation is 'Doctor', it selects the name.
@@ -69,7 +69,7 @@ The expression MIN(CASE WHEN occupation = 'Doctor' THEN name ELSE NULL END) work
 The MIN() function then finds the alphabetically smallest name **within each row_num group** for Doctor. 
 This process repeats across occupations (e.g., Professor, Singer, Actor), ensuring we get the smallest (alphabetically first) name in each row_num group per occupation.
 
-**###Example Explanation**:
+### Example Explanation:
 
 In each row_num group, this function returns names as follows:
 -row_num = 1 group: Contains first alphabetical names across all occupations.
@@ -79,7 +79,7 @@ Doctor = John, Professor = Emily, Singer = Olivia, Actor = Mia
 
 The GROUP BY row_num structure here ensures that we only select the smallest alphabetically ordered names for each row_num, providing a neatly pivoted output.
 
-**##Final Query**
+## Final Query
 
 ```sql
 SELECT  
@@ -96,7 +96,7 @@ GROUP BY row_num
 ORDER BY row_num;
 ```
 
-**##Query Results Table**
+## Query Results Table
 
 |Actor	|Doctor	|Professor	|Singer|
 |------|-------------|-------------|-------|
@@ -107,19 +107,22 @@ ORDER BY row_num;
 
 
 
+## Why Use GROUP BY row_num?
+The ROW_NUMBER() function assigns ranks to rows but doesn’t aggregate them. By grouping on row_num, we can apply MIN() to **each rank level** across occupations, effectively letting us “pivot” the data by occupation. Thus, GROUP BY row_num allows us to align names by their rank within each occupation, creating the desired pivot effect.
 
 
 
 
-**#Application_1**
 
-#Customer Interest Analysis by Age and Gender
+# Application_1
+
+## Customer Interest Analysis by Age and Gender
 
 This project analyses customer interests based on gender and age group data, drawing from the customer_interests table. By identifying the top interests in each demographic, we can gain insights into customer preferences, helping tailor marketing strategies effectively.
 
-**##Problem Description**
+## Problem Description
 
-**###The main goal is to:**
+### The main goal is to:
 
 Aggregate customer interests by gender and age group.
 Transform the top 5 interests for each demographic into separate columns, ordered by popularity.
@@ -128,9 +131,13 @@ For example, columns for Male_10s, Male_20s, Female_10s, Female_20s will display
 If a group has fewer recorded interests, remaining fields will display NULL.
 
 
-**##Project Steps**
+## Database
 
-**###Step 1: Aggregate Customer Interests by Age and Gender**
+The data used in this project was randomly generated for the purpose of demonstrating the SQL queries and analysis techniques. It does not represent real-world customer data, but instead serves as a simulated dataset to showcase how the queries can be applied to various scenarios.
+
+## Project Steps
+
+### Step 1: Aggregate Customer Interests by Age and Gender
 
 The first step is to group interests by gender and age range, categorised as 10s, 20s, 30s, etc. 
 This is achieved by using a CASE statement to define age groups and count the number of customers with each interest.
@@ -158,14 +165,14 @@ from (
 ) as age_in_group
 group by gender, age_group, interest
 order by gender, age_group, num_customers desc;
----
+```
 
-**###Step 2: Rank Interests within Each Demographic**
+### Step 2: Rank Interests within Each Demographic
 
 Using the data from Step 1, we calculate each interest’s popularity percentage and rank them within each demographic using row_number(). 
 This makes it easy to identify the top interests by popularity.
 
----
+```sql
 with interest_percentage as (
     select 
         gender,
@@ -178,7 +185,7 @@ with interest_percentage as (
 )
 ```
 
-**###Step 3: Transform Interests into Columns for Output**
+### Step 3: Transform Interests into Columns for Output
 
 Finally, we use conditional aggregation to pivot the top interests into separate columns for each demographic group, listing interests and their respective percentages. 
 Any group with fewer interests will display NULL in the corresponding cells.
@@ -208,7 +215,7 @@ group by rnum
 limit 5;
 ```
 
-**##Final Query**
+## Final Query
 
 ```sql
 with age_group_num_customers as(
@@ -270,7 +277,7 @@ group by rnum
 limit 5;
 ```
 
-**##Output **
+## Output 
 
 
 |male_10s   |     male_20s        |       male_30s            |      male_40s            |     male_50s       |  female_20s|       female_30s             |  female_40s|       female_50s|
@@ -280,8 +287,5 @@ limit 5;
 |Sports (17%)|	Music (23%)	     |Music (24%)	       |Music (23%)	     |Technology (25%)  	|Cooking (16%)	|Beauty (20%)	|Gaming (14%)	|Fashion (33%)|
 |Technology (17%)|Technology (13%)   |Sports (22%)	       |Sports (19%)|        	Music (8%)   	|Technology (15%)	|Technology (17%)	|Technology (10%)|	NULL|
 |NULL|	       Fitness (2%)|                        NULL       |Fitness (4%)|                Gaming (8%)	|Fashion (12%)    |	Gaming (8%)	|Beauty (10%)	|  NULL                  |
-|NULL|	John Doe|	Sarah Clark|	NULL|
 
 
-**##Why Use GROUP BY row_num?**
-The ROW_NUMBER() function assigns ranks to rows but doesn’t aggregate them. By grouping on row_num, we can apply MIN() to **each rank level** across occupations, effectively letting us “pivot” the data by occupation. Thus, GROUP BY row_num allows us to align names by their rank within each occupation, creating the desired pivot effect.
