@@ -1,6 +1,6 @@
 **#SQL Learning Notes**
 
-## SQL_Practice_Unpivot
+## SQL_Practice_Unpivot + Applications
 
 **##Goals**
 -Understanding GROUP BY
@@ -104,6 +104,182 @@ ORDER BY row_num;
 |Mia Turner|	Bob Brown|	David Martinez|	James Thomas|
 |Noah Green	|Charlie Davis|	Emily Lewis|	Olivia Robinson|
 |Isabella Scott|	Jane Smith|	Michael Wilson|	NULL|
+
+
+
+
+
+
+
+**#Application_1**
+
+#Customer Interest Analysis by Age and Gender
+
+This project analyses customer interests based on gender and age group data, drawing from the customer_interests table. By identifying the top interests in each demographic, we can gain insights into customer preferences, helping tailor marketing strategies effectively.
+
+**##Problem Description**
+
+**###The main goal is to:**
+
+Aggregate customer interests by gender and age group.
+Transform the top 5 interests for each demographic into separate columns, ordered by popularity.
+
+For example, columns for Male_10s, Male_20s, Female_10s, Female_20s will display the most selected interests for each group. 
+If a group has fewer recorded interests, remaining fields will display NULL.
+
+
+**##Project Steps**
+
+**###Step 1: Aggregate Customer Interests by Age and Gender**
+
+The first step is to group interests by gender and age range, categorised as 10s, 20s, 30s, etc. 
+This is achieved by using a CASE statement to define age groups and count the number of customers with each interest.
+
+
+```sql
+select gender,
+       age_group,
+       interest,
+       count(*) as num_customers,
+       sum(count(*)) over (partition by gender, age_group) as total_in_age_group
+from (
+    select
+        gender,
+        case 
+            when age between 10 and 19 then '10s'
+            when age between 20 and 29 then '20s'
+            when age between 30 and 39 then '30s'
+            when age between 40 and 49 then '40s'
+            when age between 50 and 59 then '50s'
+            else null 
+        end as age_group,
+        interest
+    from customer_interests
+) as age_in_group
+group by gender, age_group, interest
+order by gender, age_group, num_customers desc;
+---
+
+**###Step 2: Rank Interests within Each Demographic**
+
+Using the data from Step 1, we calculate each interest’s popularity percentage and rank them within each demographic using row_number(). 
+This makes it easy to identify the top interests by popularity.
+
+---
+with interest_percentage as (
+    select 
+        gender,
+        age_group,
+        interest,
+        num_customers,
+        round(num_customers / total_in_age_group * 100) as percentage,
+        row_number() over (partition by gender, age_group order by num_customers desc) as rnum
+    from age_group_num_customers
+)
+```
+
+**###Step 3: Transform Interests into Columns for Output**
+
+Finally, we use conditional aggregation to pivot the top interests into separate columns for each demographic group, listing interests and their respective percentages. 
+Any group with fewer interests will display NULL in the corresponding cells.
+
+```sql
+select 
+    concat(min(case when gender = 'M' and age_group = '10s' then interest else null end), ' (', 
+           min(case when gender = 'M' and age_group = '10s' then percentage else null end), '%)') as male_10s,
+    concat(min(case when gender = 'M' and age_group = '20s' then interest else null end), ' (', 
+           min(case when gender = 'M' and age_group = '20s' then percentage else null end), '%)') as male_20s,
+    concat(min(case when gender = 'M' and age_group = '30s' then interest else null end), ' (',  
+           min(case when gender = 'M' and age_group = '30s' then percentage else null end), '%)') as male_30s,
+    concat(min(case when gender = 'M' and age_group = '40s' then interest else null end), ' (',  
+           min(case when gender = 'M' and age_group = '40s' then percentage else null end), '%)') as male_40s,
+    concat(min(case when gender = 'M' and age_group = '50s' then interest else null end), ' (',  
+           min(case when gender = 'M' and age_group = '50s' then percentage else null end), '%)') as male_50s,
+    concat(min(case when gender = 'F' and age_group = '20s' then interest else null end), ' (',  
+           min(case when gender = 'F' and age_group = '20s' then percentage else null end), '%)') as female_20s,
+    concat(min(case when gender = 'F' and age_group = '30s' then interest else null end), ' (',  
+           min(case when gender = 'F' and age_group = '30s' then percentage else null end), '%)') as female_30s,
+    concat(min(case when gender = 'F' and age_group = '40s' then interest else null end), ' (',  
+           min(case when gender = 'F' and age_group = '40s' then percentage else null end), '%)') as female_40s,
+    concat(min(case when gender = 'F' and age_group = '50s' then interest else null end), ' (',  
+           min(case when gender = 'F' and age_group = '50s' then percentage else null end), '%)') as female_50s
+from interest_percentage 
+group by rnum
+limit 5;
+```
+
+**##Final Query**
+
+```sql
+with age_group_num_customers as(
+select gender,
+	   age_group,
+	   interest,
+	   count(*) as num_customers,
+	   sum(count(*)) over (partition by gender, age_group) as total_in_age_group
+from (
+		select
+			gender,
+			case when age between 10 and 19 then '10s'
+				 when age between 20 and 29 then '20s'
+				 when age between 30 and 39 then '30s'
+				 when age between 40 and 49 then '40s'
+				 when age between 50 and 59 then '50s'
+				 else null 
+			end as age_group,
+			interest
+		from customer_interests
+		) as age_in_group
+group by gender,
+		 age_group,
+		 interest
+order by gender, age_group, num_customers desc
+),
+interest_percentage as(
+select gender,
+	   age_group,
+	   interest,
+	   num_customers,
+	   round(num_customers/total_in_age_group *100) as percentage,
+	   row_number () over (partition by gender, age_group order by num_customers DESC) as rnum
+from age_group_num_customers 
+group by gender, age_group, interest
+order by gender, age_group, rnum
+)
+select 
+	concat(min(case when gender = 'M' and age_group = '10s' then interest else null end), ' (', 
+	       min(case when gender = 'M' and age_group = '10s' then percentage else null end), '%)') as male_10s,
+	concat(min(case when gender = 'M' and age_group = '20s' then interest else null end),  ' (', 
+		   min(case when gender = 'M' and age_group = '20s' then percentage else null end), '%)')as male_20s,
+	concat(min(case when gender = 'M' and age_group = '30s' then interest else null end), ' (',  
+		   min(case when gender = 'M' and age_group = '30s' then percentage else null end), '%)')as male_30s,
+	concat(min(case when gender = 'M' and age_group = '40s' then interest else null end), ' (',  
+		   min(case when gender = 'M' and age_group = '40s' then percentage else null end), '%)')as male_40s,
+	concat(min(case when gender = 'M' and age_group = '50s' then interest else null end), ' (',  
+		   min(case when gender = 'M' and age_group = '50s' then percentage else null end), '%)')as male_50s,
+	concat(min(case when gender = 'F' and age_group = '20s' then interest else null end),  ' (',  
+		   min(case when gender = 'F' and age_group = '20s' then percentage else null end), '%)')as female_20s,
+	concat(min(case when gender = 'F' and age_group = '30s' then interest else null end), ' (',  
+		   min(case when gender = 'F' and age_group = '30s' then percentage else null end), '%)')as female_30s,
+	concat(min(case when gender = 'F' and age_group = '40s' then interest else null end),  ' (',  
+		   min(case when gender = 'F' and age_group = '40s' then percentage else null end), '%)')as female_40s,
+	concat(min(case when gender = 'F' and age_group = '50s' then interest else null end),  ' (',  
+		   min(case when gender = 'F' and age_group = '50s' then percentage else null end), '%)')as female_50s
+from interest_percentage 
+group by rnum
+limit 5;
+```
+
+**##Output **
+
+
+|male_10s   |     male_20s        |       male_30s            |      male_40s            |     male_50s       |  female_20s|       female_30s             |  female_40s|       female_50s|
+|---------------|---------------------|---------------------------|-------------------------|-----------------------|-----------------|----------------------------|---------------|-----------------|
+|Music (33%)	|Gaming (33%)	     |Technology (28%)| Technology (29%)	|Sports (33%)	        |Fitness (22%)	|Cooking (22%)	|Cooking (33%)	|Cooking (33%)|
+|Gaming (33%)	|Sports (28%)	     |Gaming (26%)	|Gaming (25%)	     |Fitness (25%)	           |Beauty (20%)  |	Fitness (21%)	|Fitness (29%)	|Beauty (33%)|
+|Sports (17%)|	Music (23%)	     |Music (24%)	       |Music (23%)	     |Technology (25%)  	|Cooking (16%)	|Beauty (20%)	|Gaming (14%)	|Fashion (33%)|
+|Technology (17%)|Technology (13%)   |Sports (22%)	       |Sports (19%)|        	Music (8%)   	|Technology (15%)	|Technology (17%)	|Technology (10%)|	NULL|
+|NULL|	       Fitness (2%)|                        NULL       |Fitness (4%)|                Gaming (8%)	|Fashion (12%)    |	Gaming (8%)	|Beauty (10%)	|  NULL                  |
 |NULL|	John Doe|	Sarah Clark|	NULL|
 
 
